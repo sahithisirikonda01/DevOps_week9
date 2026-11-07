@@ -6,7 +6,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "Building Docker Image"
-                bat "docker build -t YOUR_DOCKERHUB_USERNAME/student-registration:latest ."
+                bat "docker build -t sahithisirikonda01/student-registration:latest ."
             }
         }
 
@@ -18,7 +18,7 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
-                    bat 'docker push YOUR_DOCKERHUB_USERNAME/student-registration:latest'
+                    bat 'docker push sahithisirikonda01/student-registration:latest'
                 }
             }
         }
