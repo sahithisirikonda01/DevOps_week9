@@ -3,21 +3,38 @@ pipeline {
 
     stages {
 
-        stage('Build') {
+        stage('Build Docker Image') {
             steps {
                 echo "Building Docker Image"
-
-                bat "docker build -t mypythonflaskapp ."
+                bat "docker build -t YOUR_DOCKERHUB_USERNAME/student-registration:latest ."
             }
         }
 
-        stage('Run') {
+        stage('Docker Login and Push') {
             steps {
-                echo "Running application in Docker Container"
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+                    bat 'docker push YOUR_DOCKERHUB_USERNAME/student-registration:latest'
+                }
+            }
+        }
 
-                bat "docker rm -f mycontainer || exit 0"
+        stage('Deploy to Kubernetes') {
+            steps {
+                bat "kubectl apply -f deployment.yaml"
+                bat "kubectl apply -f service.yaml"
+            }
+        }
 
-                bat "docker run -d -p 5000:5000 --name mycontainer mypythonflaskapp"
+        stage('Verify Deployment') {
+            steps {
+                bat "kubectl rollout status deployment/kubedemoapp-deployment"
+                bat "kubectl get pods -o wide"
+                bat "kubectl get svc kubedemoapp-service"
             }
         }
     }
